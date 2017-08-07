@@ -1,0 +1,537 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE UWSimScene SYSTEM "UWSimScene.dtd" >
+
+<UWSimScene>
+    <oceanState>
+    <windx> 0.04 </windx>
+    <windy> 0.04 </windy>
+    <windSpeed> 12 </windSpeed>
+    <depth> 1000 </depth>
+    <reflectionDamping> 0.35 </reflectionDamping>
+    <waveScale> 1e-7 </waveScale>
+    <isNotChoppy> 1 </isNotChoppy>
+    <choppyFactor> 2.5 </choppyFactor>
+    <crestFoamHeight> 2.2 </crestFoamHeight>
+    <oceanSurfaceHeight> 0 </oceanSurfaceHeight>
+    <fog>
+      <density> 0.1</density>
+      <color>
+  <r>0</r>
+  <g>0.05</g>
+  <b>0.3</b>
+      </color>
+    </fog>
+    <color>
+      <r>0.0</r>
+      <g>0.05</g>
+      <b>0.3</b>
+    </color>
+    <attenuation>
+      <r>0.015</r>
+      <g>0.0075 </g>
+      <b> 0.005 </b>
+    </attenuation>
+  </oceanState>
+  <simParams>
+    <disableShaders> 0 </disableShaders>
+    <resw> 800 </resw>
+    <resh> 600 </resh>
+    <offsetp>
+      <x>0</x>
+      <y>0</y>
+      <z>0</z>
+    </offsetp>
+    <offsetr>
+      <x> 3.14</x>
+      <y> 0</y>
+      <z> -1.57 </z>
+    </offsetr>
+    <enablePhysics> 0 </enablePhysics>
+    <showTrajectory>
+      <target>girona500/end_effector</target>
+    </showTrajectory>
+  </simParams>
+  <camera>
+    <freeMotion> 1 </freeMotion>
+    <objectToTrack>girona500/base_link</objectToTrack>
+    <fov> 60 </fov>
+    <aspectRatio> 1.33 </aspectRatio>
+    <near> 0.1 </near>
+    <far> 10000 </far>
+    <position>
+      <x>-5</x>
+      <y>-5 </y>
+      <z>8 </z>
+    </position> 
+    <lookAt>
+      <x>0</x>
+      <y>0 </y>
+      <z>0 </z>
+    </lookAt>
+  </camera>
+
+  <vehicle>
+    <name>girona500</name>
+    <file>data/scenes/g500ARM5.urdf</file>
+    <jointValues>
+      <joint> 0 </joint>
+      <joint> 0</joint>
+      <joint> 2.2 </joint>
+      <joint> 0 </joint>
+      <joint>0.3 </joint>
+    </jointValues>
+    <position>
+      <x> -5</x>
+      <y> 5 </y>
+      <z> 2.0 </z>
+    </position>
+    <orientation>
+      <r>0</r>
+      <p>0</p>
+      <y>0</y>
+    </orientation>
+    
+    <virtualCamera>
+      <name>stereo_down</name>
+      <relativeTo>part0</relativeTo>
+      <resw>1024</resw>
+      <resh>768</resh>
+      <position>
+        <x>-0.4</x>
+        <y>0.06</y>
+        <z> 0.1 </z>
+      </position>  
+      <orientation>
+        <r>-0.5</r>
+        <p>3.14</p>
+        <y>1.57 </y>
+      </orientation>
+      <baseline> 0.0 </baseline>
+      <frameId> stereo_down </frameId>
+      <parameters>
+        <fx>681.186</fx>
+        <fy>681.186</fy>
+        <x0>512</x0>
+        <y0>384</y0>
+        <f>100.0</f>
+        <n>0.05</n>
+        <k>0.0</k>
+      </parameters>
+    </virtualCamera>
+    <virtualCamera>
+      <name>stereo_down_right</name>
+      <relativeTo>part0</relativeTo>
+      <resw>1024</resw>
+      <resh>768</resh>
+      <position>
+        <x>-0.4</x>
+        <y>-0.06</y>
+        <z> 0.1 </z>
+      </position>  
+      <orientation>
+        <r>-0.5</r>
+        <p>3.14</p>
+        <y>1.57 </y>
+      </orientation>
+      <baseline> 0.12 </baseline>
+      <frameId> stereo_down </frameId>
+      <parameters>
+        <fx>681.186</fx>
+        <fy>681.186</fy>
+        <x0>512</x0>
+        <y0>384</y0>
+        <f>100.0</f>
+        <n>0.05</n>
+        <k>0.0</k>
+      </parameters>
+    </virtualCamera>
+   
+    <imu>
+      <name>imu</name>
+      <relativeTo>base_link</relativeTo>
+      <position>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+      </position>  
+      <orientation>
+        <r>0</r>
+        <p>0</p>
+        <y>3.1415</y>
+      </orientation>
+      <std>0.00000001</std>
+    </imu>
+
+    <pressureSensor>
+      <name>pressureSensor</name>
+      <relativeTo>base_link</relativeTo>
+      <position>
+        <x>0</x>
+        <y>0</y>
+        <z>0.2</z>
+      </position>  
+      <orientation>
+        <r>0</r>
+        <p>0</p>
+        <y>0</y>
+      </orientation>
+      <std>0.02</std>
+    </pressureSensor>
+    
+    <gpsSensor>
+      <name>GPSSensor</name>
+      <relativeTo>base_link</relativeTo>
+      <position>
+        <x>0</x>
+        <y>0</y>
+        <z>0</z>
+      </position>  
+      <orientation>
+        <r>0</r>
+        <p>0</p>
+        <y>0</y>
+      </orientation>
+      <std>0.00005</std>
+    </gpsSensor>
+
+    <dvlSensor>
+      <name>DVLSensor</name>
+      <relativeTo>base_link</relativeTo>
+      <position>
+        <x>-0.75</x>
+        <y>0</y>
+        <z>0</z>
+      </position>  
+      <orientation>
+        <r>0</r>
+        <p>0</p>
+        <y>3.9269908169872414</y>
+      </orientation>
+      <std>0.0015</std>
+    </dvlSensor>
+
+   <multibeamSensor underwaterParticles="false">
+    <name>multibeam</name>
+    <relativeTo>part0</relativeTo>
+    <position>
+      <x>-0.2</x>
+      <y> 0.1 </y>
+      <z> 0 </z>
+    </position>
+    <orientation>
+      <r>3.14</r>
+      <p>0</p>
+      <y>3.14 </y>
+    </orientation>
+    <initAngle>-60</initAngle>
+    <finalAngle>60</finalAngle>
+    <angleIncr>0.1</angleIncr>
+    <range>20</range>
+  </multibeamSensor>
+
+  </vehicle>
+
+  <object>
+    <name> terrain </name>
+    <file> terrain/desert/desert2.3ds</file>
+    <position>
+      <x> 0</x>
+      <y> 0 </y>
+      <z> 5.0 </z>
+    </position>
+    <orientation>
+      <r>0.0</r>
+      <p>1.57 </p>
+      <y>0 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 0</x>
+      <y> -5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+    
+    <object buried="0.75">
+    <name> amphora1 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 0</x>
+      <y> 5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+    
+    <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 2</x>
+      <y> 4.5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+      <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 1.5</x>
+      <y> 5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+  
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> -2</x>
+      <y> 4.7 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> -2</x>
+      <y> 4.7 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> -3.5</x>
+      <y> -3.5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 4</x>
+      <y> 3 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> -3.5</x>
+      <y> 3.5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+  
+  <object buried="0.75">
+    <name> amphora2 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 3.5</x>
+      <y> -3.5 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+  
+  <object buried="0.75">
+    <name> amphora3 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> 5</x>
+      <y> 0 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <object buried="0.75">
+    <name> amphora3 </name>
+    <file> objects/full_amphora.osg  </file>
+    <position>
+      <x> -5</x>
+      <y> 0 </y>
+      <z> 4.27 </z>
+    </position>
+    <orientation>
+      <r>1.57</r>
+      <p>0 </p>
+      <y>-1.57 </y>
+    </orientation>
+    <physics>
+      <mass> 0 </mass>
+      <collisionShapeType> trimesh </collisionShapeType>
+    </physics>
+  </object>
+
+  <rosInterfaces>
+    <ROSOdomToPAT>
+      <topic> /dataNavigator </topic>
+      <vehicleName> girona500 </vehicleName>
+    </ROSOdomToPAT>
+
+    <WorldToROSTF>
+      <rootName> world </rootName>
+      <enableObjects> 1 </enableObjects>
+      <rate>10</rate>
+    </WorldToROSTF>
+
+    <ArmToROSJointState> 
+  <topic>/uwsim/joint_state</topic>
+  <vehicleName> girona500 </vehicleName>
+    </ArmToROSJointState>
+    <ROSJointStateToArm> 
+  <topic>/uwsim/joint_state_command</topic>
+  <vehicleName> girona500 </vehicleName>
+    </ROSJointStateToArm>
+
+
+   <VirtualCameraToROSImage> 
+      <cameraName>stereo_down</cameraName>
+      <imageTopic> /stereo_down/left/image_raw</imageTopic>
+      <infoTopic> /stereo_down/left/camera_info </infoTopic>
+    </VirtualCameraToROSImage>
+    <VirtualCameraToROSImage> 
+      <cameraName>stereo_down_right</cameraName>
+      <imageTopic> /stereo_down/right/image_raw</imageTopic>
+      <infoTopic>  /stereo_down/right/camera_info </infoTopic>
+    </VirtualCameraToROSImage>
+
+        <ROSTwistToPAT>
+      <topic> /g500/twist</topic>
+      <vehicleName> girona500 </vehicleName>
+    </ROSTwistToPAT>
+    <ROSPoseToPAT>
+      <topic> /g500/pose</topic>
+      <vehicleName> girona500 </vehicleName>
+    </ROSPoseToPAT>
+
+        <ImuToROSImu>
+      <name>imu</name>
+      <topic>g500/imu</topic>
+      <rate>20</rate>
+    </ImuToROSImu>
+
+     <multibeamSensorToLaserScan>
+    <name>multibeam</name>
+    <topic>g500/multibeam</topic>
+  </multibeamSensorToLaserScan>
+
+  </rosInterfaces>
+
+</UWSimScene>
+
