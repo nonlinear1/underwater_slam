@@ -12,7 +12,9 @@ Launch UWSim node.
 rosrun uwsim uwsim --configfile ~/catkin_ws/src/UnderwaterSlam/config/dredging.xml 
 ```
 
-![uwsim](image/uwsim.png){ width: 200px; }
+<img src="image/uwsim.png" width="200">
+
+
 
 ## Files Organization
 
@@ -68,7 +70,7 @@ Get quaternion and linear velocity for ship.
 
 Generate point cloud for ship.
 
-![rviz](image/rviz.png){ width: 200px; }
+<img src="image/rviz.png" width="200">
 
 **save_pcl**
 
