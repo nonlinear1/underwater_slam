@@ -1,6 +1,0 @@
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/rebuild_cache.dir
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/edit_cache.dir
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/process.dir
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/mytest1.dir
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/mytest.dir
-/home/daniel/CLionProjects/pcl_icp/cmake-build-debug/CMakeFiles/pcl.dir
