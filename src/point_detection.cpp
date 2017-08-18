@@ -27,6 +27,7 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 	listener_.lookupTransform("/girona500", "/world",
 			ros::Time(0), transform_);
 	Eigen::Vector3d pos(transform_.getOrigin().getX(),transform_.getOrigin().getY(),transform_.getOrigin().getZ());
+	ROS_INFO_STREAM("pos:"<< std::endl << pos);
 	Eigen::Vector3d temp;
 	double distence;
 	geometry_msgs::Point32 point;
@@ -37,10 +38,12 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 		distence = temp.norm();
 		if (distence < 5)
 		{
-			ROS_INFO_STREAM(*it);
-			point.x = temp(0);
-			point.y = temp(1);
-			point.z = temp(2);
+			ROS_INFO_STREAM("point :"<< std::endl << *it);
+			tf::Vector3 point_in((*it)(0), (*it)(1), (*it)(2)); 
+			tf::Vector3 point_out = transform_ * point_in;
+			point.x = point_out.getX();
+			point.y = point_out.getY();
+			point.z = point_out.getZ();
 			res.res.points.push_back(point);
 		}
 	}
@@ -51,8 +54,8 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 void point_list_init()
 {
 	point_list.push_back(Eigen::Vector3d(0,0,0));
-	point_list.push_back(Eigen::Vector3d(-5,0,0));
-	point_list.push_back(Eigen::Vector3d(1,2,0));
+	point_list.push_back(Eigen::Vector3d(-3,0,0));
+	point_list.push_back(Eigen::Vector3d(-1,-2,0));
 	point_list.push_back(Eigen::Vector3d(-3,-4,0));
 	point_list.push_back(Eigen::Vector3d(-1,-3,0));
 }

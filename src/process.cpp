@@ -89,8 +89,8 @@ int main(int argc, char **argv)
     for(int i = 0; i < measurement_srv.response.res.points.size(); i++)
     { 
       ROS_INFO_STREAM( i+1 << "th measurement");
-      new_m(0) = measurement_srv.response.res.points[i].x - u(0);
-      new_m(1) = measurement_srv.response.res.points[i].y - u(1);
+      new_m(0) = measurement_srv.response.res.points[i].x + u(0);
+      new_m(1) = measurement_srv.response.res.points[i].y + u(1);
       new_m(2) = 0;
       std::cout << "new_m: " << std::endl << new_m << std::endl;
 
@@ -112,12 +112,16 @@ int main(int argc, char **argv)
         psi_k = htk*sigma*htk.transpose()+qt;
         std::cout << "new_m-temp: " << std::endl << new_m-temp << std::endl;
         double dis = (new_m-temp).transpose() * psi_k.inverse()*(new_m-temp);
+        if (dis < 0)
+        {
+          dis = -dis;
+        }
         dis_list.push_back(dis);
         ROS_INFO_STREAM("Push dis " << dis);
       }
 
       int min_ind = n+1;
-      double min = 10; 
+      double min = 5; 
 
       for(int k = 0; k < dis_list.size(); k++)
       {
@@ -135,9 +139,9 @@ int main(int argc, char **argv)
         ROS_INFO_STREAM("New find");
         kti = Eigen::Matrix3d::Zero();
         feature.fresh = true;
-        feature.z = new_m - Eigen::Vector3d(u(0), u(1), 0);
+        feature.z = new_m;
         std::cout << "pos: " << std::endl << feature.z << std::endl;
-        feature.kti = qt.block(0,0,3,3);
+        feature.kti = qt;
         feature_list.push_back(feature);
       }
       else 
