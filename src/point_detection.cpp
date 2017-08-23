@@ -36,11 +36,11 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 	{
 		temp = *it-pos;
 		distence = temp.norm();
-		if (distence < 5)
+		if (distence < 8)
 		{
-			ROS_INFO_STREAM("point :"<< std::endl << *it);
 			tf::Vector3 point_in((*it)(0), (*it)(1), (*it)(2)); 
 			tf::Vector3 point_out = transform_ * point_in;
+			ROS_INFO_STREAM("point :"<< std::endl << point_out.getX() << std::endl << point_out.getY() << std::endl << point_out.getZ() << std::endl);
 			point.x = point_out.getX();
 			point.y = point_out.getY();
 			point.z = point_out.getZ();
@@ -55,7 +55,7 @@ void point_list_init()
 {
 	point_list.push_back(Eigen::Vector3d(0,0,0));
 	point_list.push_back(Eigen::Vector3d(-3,0,0));
-	point_list.push_back(Eigen::Vector3d(-1,-2,0));
+	point_list.push_back(Eigen::Vector3d(1,2,0));
 	point_list.push_back(Eigen::Vector3d(-3,-4,0));
 	point_list.push_back(Eigen::Vector3d(-1,-3,0));
 }

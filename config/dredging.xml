@@ -82,8 +82,8 @@
       <joint>0.3 </joint>
     </jointValues>
     <position>
-      <x> -5</x>
-      <y> 5 </y>
+      <x> -5 </x>
+      <y> 0 </y>
       <z> 2.0 </z>
     </position>
     <orientation>
@@ -158,7 +158,7 @@
       <orientation>
         <r>0</r>
         <p>0</p>
-        <y>3.1415</y>
+        <y>0</y>
       </orientation>
       <std>0.00000001</std>
     </imu>
