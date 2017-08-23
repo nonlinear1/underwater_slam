@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   geometry_msgs
   underwater_sensor_msgs
+  nav_msgs
 )
 
 find_package(PCL REQUIRED)

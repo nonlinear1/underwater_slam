@@ -4,6 +4,10 @@
 #include <vector>
 #include <Eigen/Dense>
 #include <Eigen/Geometry>
+#include "sensor_msgs/PointCloud.h"
+#include "geometry_msgs/Point32.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "nav_msgs/Path.h"
 #include "underwater_slam/PointDetection.h"
 #include "underwater_slam/RequireControl.h"
 
@@ -34,10 +38,13 @@ int main(int argc, char **argv)
   ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
 
   ros::Publisher pub_point = node.advertise<sensor_msgs::PointCloud>("Keypoint", 1);
-
+  ros::Publisher pub_path = node.advertise<nav_msgs::Path>("Boatpath", 1);
 
   underwater_slam::PointDetection measurement_srv;
   underwater_slam::RequireControl control_srv;
+
+  sensor_msgs::PointCloud point_rst;
+  nav_msgs::Path path_rst;
 
   Eigen::MatrixXd sigma = Eigen::Matrix3d::Zero();
   Eigen::VectorXd u = Eigen::Vector3d::Zero();
@@ -244,6 +251,38 @@ int main(int argc, char **argv)
       }
     }
     feature_list.clear();
+
+    point_rst.header.stamp = ros::Time::now();
+    point_rst.header.seq++;
+    point_rst.header.frame_id = "/world";
+
+    geometry_msgs::Point32 point;
+
+    for (int i = 1; i < (u.rows()/3)-1; ++i)
+    {
+      point.x = u(3*i);
+      point.y = u(3*i+1);
+      point.z = 0;
+      point_rst.points.push_back(point);
+    }
+
+    pub_point.publish(point_rst);
+    point_rst.points.clear();
+
+    path_rst.header.stamp = ros::Time::now();
+    path_rst.header.seq++;
+    path_rst.header.frame_id = "/world";
+
+    geometry_msgs::PoseStamped pose;
+    pose.header = path_rst.header;
+    pose.pose.position.x = u(0);
+    pose.pose.position.y = u(1);
+    pose.pose.position.z = 0;
+    pose.pose.orientation = control_srv.response.orientation;
+
+    path_rst.poses.push_back(pose);
+
+    pub_path.publish(path_rst);
 
   	ros::spinOnce();
   	loop_rate.sleep();
