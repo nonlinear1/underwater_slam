@@ -12,7 +12,7 @@ Launch UWSim node.
 rosrun uwsim uwsim --configfile ~/catkin_ws/src/UnderwaterSlam/config/dredging.xml 
 ```
 
-<img src="image/uwsim.png" width="200">
+<img src="image/uwsim.png" width="600">
 
 
 
@@ -70,7 +70,7 @@ Get quaternion and linear velocity for ship.
 
 Generate point cloud for ship.
 
-<img src="image/rviz.png" width="200">
+<img src="image/rviz.png" width="600">
 
 **save_pcl**
 
@@ -79,3 +79,42 @@ Save point cloud to local files.
 **process**
 
 Main loop for SLAM.
+
+
+
+## EKF_formula
+
+###initialization
+
+$$
+\mu_{0}  = \begin{pmatrix} 
+0\\
+0\\
+0\end{pmatrix} \\
+\Sigma_0 = \begin{pmatrix}
+0 & 0 & 0 \\
+0 & 0 & 0 \\
+0 & 0 & 0 \end{pmatrix} \\
+N_0 = 0 \\
+u_t = \begin{pmatrix}
+v_x  \times \Delta t \\
+v_y  \times \Delta t \\ 
+\theta_t - \theta_{t-1} \end{pmatrix} \\
+z_t = \begin{pmatrix}
+x\\
+y\\
+s
+\end{pmatrix}
+$$
+
+###Algorithm begin 
+
+$$
+N_t = N_{t-1} \\
+F_x = \begin{pmatrix}
+1 & 0 & 0 & 0...0 \\
+0 & 1 & 0 & 0...0 \\
+0 & 0 & 1 & 0...0 
+\end{pmatrix}
+$$
+

@@ -82,8 +82,8 @@
       <joint>0.3 </joint>
     </jointValues>
     <position>
-      <x> -5 </x>
-      <y> 0 </y>
+      <x> 0 </x>
+      <y> 5 </y>
       <z> 2.0 </z>
     </position>
     <orientation>
@@ -119,6 +119,7 @@
         <k>0.0</k>
       </parameters>
     </virtualCamera>
+   
     <virtualCamera>
       <name>stereo_down_right</name>
       <relativeTo>part0</relativeTo>
@@ -208,7 +209,7 @@
         <p>0</p>
         <y>0</y>
       </orientation>
-      <std>0.0015</std>
+      <std>0.01</std>
     </dvlSensor>
 
    <multibeamSensor underwaterParticles="false">

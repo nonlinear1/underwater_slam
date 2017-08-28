@@ -16,12 +16,12 @@ def talker():
         msg.twist.twist.linear.z = 0.0
         msg.twist.twist.angular.x = 0.0
         msg.twist.twist.angular.y = 0.0
-        msg.twist.twist.angular.z = 0.0
+        msg.twist.twist.angular.z = -0.1
         now = rospy.get_time()
-        during = now - begin
-        if during > 20:
-            v = -v
-            begin = now
+#        during = now - begin
+#        if during > 20:
+#            v = -v
+#            begin = now
         pub.publish(msg)
         rate.sleep()
 

@@ -23,11 +23,14 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 								underwater_slam::PointDetection::Response &res)
 {
 	listener_.waitForTransform("/girona500", "/world",
-			ros::Time(0), ros::Duration(1.0));
+			ros::Time(0), ros::Duration(0.0));
 	listener_.lookupTransform("/girona500", "/world",
 			ros::Time(0), transform_);
 	Eigen::Vector3d pos(transform_.getOrigin().getX(),transform_.getOrigin().getY(),transform_.getOrigin().getZ());
-	ROS_INFO_STREAM("pos:"<< std::endl << pos);
+	double roll, yaw, pitch;
+	transform_.getBasis().getEulerYPR(yaw, pitch, roll);
+	yaw = -yaw;
+	ROS_INFO_STREAM("yaw: " << yaw);
 	Eigen::Vector3d temp;
 	double distence;
 	geometry_msgs::Point32 point;
@@ -38,16 +41,15 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 		distence = temp.norm();
 		if (distence < 8)
 		{
-			tf::Vector3 point_in((*it)(0), (*it)(1), (*it)(2)); 
-			tf::Vector3 point_out = transform_ * point_in;
-			ROS_INFO_STREAM("point :"<< std::endl << point_out.getX() << std::endl << point_out.getY() << std::endl << point_out.getZ() << std::endl);
+			tf::Vector3 point_out(temp(0)*cos(yaw)+temp(1)*sin(yaw), temp(1)*cos(yaw)-temp(0)*sin(yaw), temp(2));
+			// ROS_INFO_STREAM("point :"<< std::endl << point_out.getX() << std::endl << point_out.getY() << std::endl << point_out.getZ() << std::endl);
 			point.x = point_out.getX();
 			point.y = point_out.getY();
 			point.z = point_out.getZ();
 			res.res.points.push_back(point);
 		}
 	}
-	ROS_INFO_STREAM(res.res.points.size());
+	// ROS_INFO_STREAM(res.res.points.size());
 	return true;
 }
 

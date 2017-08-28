@@ -53,7 +53,9 @@ int main(int argc, char **argv)
   Eigen::Vector3d new_m;
   Eigen::Matrix3d R;
   Eigen::Quaternion<double> q;
-  Eigen::Matrix3d qt = Eigen::Matrix3d::Identity()*0.01;
+  Eigen::Matrix3d qt = Eigen::Matrix3d::Identity();
+  qt(0,0) = 0.01;
+  qt(1,1) = 0.01;
   Eigen::MatrixXd kti;
   int n = 0;
 
@@ -62,7 +64,7 @@ int main(int argc, char **argv)
 
   std::vector<Feature> feature_list;
   std::vector<Dis_item> dis_list;
-  ros::Rate loop_rate(5);
+  ros::Rate loop_rate(10);
 
   ros::Time before, after;
   ros::Duration duration;
@@ -93,20 +95,27 @@ int main(int argc, char **argv)
                                   control_srv.response.orientation.z);
     auto rotation = q.toRotationMatrix();
     double yaw = atan(rotation(1,0)/rotation(0,0));
-
-    yaw -= u(2);
-    if (abs(yaw) > abs(yaw + pie))
+    if (yaw > 0)
     {
-      yaw += pie;
+      if (rotation(1,0) < 0)
+      {
+        yaw =yaw - pie;
+      }
     }
-    if (abs(yaw) > abs(yaw - pie))
+    else
     {
-      yaw -= pie;
-    }    
+      if (rotation(1,0) > 0)
+      {
+        yaw = yaw + pie;
+      }
+    }
+    ROS_INFO_STREAM("yaw: " << yaw);
+    
+    yaw -= u(2); 
 
     control << control_srv.response.linear_velocity.x*det_t, control_srv.response.linear_velocity.y*det_t, yaw;
     std::cout << "control: " << std::endl << control << std::endl; 
-    ROS_INFO_STREAM("Update ...");
+    // ROS_INFO_STREAM("Update ...");
 
     Eigen::MatrixXd fx_temp = Eigen::MatrixXd::Zero(3,3+3*n);
     fx_temp.block(0,0,3,3) = Eigen::Matrix3d::Identity();
@@ -116,12 +125,12 @@ int main(int argc, char **argv)
 
     sigma = sigma + fx.transpose()*R*fx;
     std::cout << "u: " << std::endl << u << std::endl;
-    std::cout << "sigma: " << std::endl << sigma << std::endl;
-    ROS_INFO_STREAM("Measurement ...");
+    // std::cout << "sigma: " << std::endl << sigma << std::endl;
+    // ROS_INFO_STREAM("Measurement ...");
 
     for(int i = 0; i < measurement_srv.response.res.points.size(); i++)
     { 
-      ROS_INFO_STREAM( i+1 << "th measurement");
+      // ROS_INFO_STREAM( i+1 << "th measurement");
       double x, y;
       x = measurement_srv.response.res.points[i].x;
       y = measurement_srv.response.res.points[i].y;
@@ -129,8 +138,8 @@ int main(int argc, char **argv)
       new_m(0) = x*cos(u(2)) - y*sin(u(2)) + u(0);
       new_m(1) = x*sin(u(2)) + y*cos(u(2)) + u(1);
       new_m(2) = 0;
-      std::cout << "new_m: " << std::endl << new_m << std::endl;
-      std::cout << "z: " << std::endl << z << std::endl;
+      // std::cout << "new_m: " << std::endl << new_m << std::endl;
+      // std::cout << "z: " << std::endl << z << std::endl;
 
       for(int j = 0; j < n; j++)
       {
@@ -144,8 +153,7 @@ int main(int argc, char **argv)
         zkt(0) = det_v(0) * cos(u(2)) + det_v(1) * sin(u(2));
         zkt(1) = (-1) * det_v(0) * sin(u(2)) + det_v(1) * cos(u(2));
         zkt(2) = 0;
-        std::cout << "zkt: " << std::endl << zkt << std::endl;
-        double r = zkt.transpose() * zkt;
+        // std::cout << "zkt: " << std::endl << zkt << std::endl;
         
         Eigen::MatrixXd fxk = Eigen::MatrixXd::Zero(6,3+3*n);
         fxk.block(0,0,3,3) = Eigen::Matrix3d::Identity();
@@ -157,11 +165,12 @@ int main(int argc, char **argv)
                   0,           0,          0,       0,          0,         1; 
     
         Eigen::MatrixXd htk;
-        htk = (1/r) * h_base*fxk;
+        htk = h_base*fxk;
         
         Eigen::MatrixXd psi_k;
         psi_k = htk*sigma*htk.transpose()+qt;
-        std::cout << "z-zkt: " << std::endl << z-zkt << std::endl;
+        // std::cout << "z-zkt: " << std::endl << z-zkt << std::endl;
+        // std::cout << "psi_k: " << std::endl << psi_k << std::endl;
         double dis = (z-zkt).transpose() * psi_k.inverse()*(z-zkt);
         if (std::isnan(dis))
         {
@@ -177,7 +186,7 @@ int main(int argc, char **argv)
         item.h = htk;
         item.psi = psi_k;
         dis_list.push_back(item);
-        ROS_INFO_STREAM("Push dis " << dis);
+        // ROS_INFO_STREAM("Push dis " << dis);
       }
 
       int min_ind = n+1;
@@ -196,17 +205,17 @@ int main(int argc, char **argv)
       
       if (min_ind == n+1)
       {
-        ROS_INFO_STREAM("New find");
+        // ROS_INFO_STREAM("New find");
         kti = Eigen::Matrix3d::Zero();
         feature.fresh = true;
         feature.z = new_m;
-        std::cout << "pos: " << std::endl << feature.z << std::endl;
+        // std::cout << "pos: " << std::endl << feature.z << std::endl;
         feature.kti = qt;
         feature_list.push_back(feature);
       }
       else 
       {
-        ROS_INFO_STREAM("Update old");
+        // ROS_INFO_STREAM("Update old");
 
         feature.fresh = false;
         feature.z = dis_list[min_ind].det;
@@ -230,6 +239,7 @@ int main(int argc, char **argv)
         psi_temp += (*it).kti*(*it).hti;
       }
     }
+    std::cout << "u_temp: " << std::endl << u_temp << std::endl;
     u += u_temp;
     sigma = (Eigen::MatrixXd::Identity(3+3*n,3+3*n) - psi_temp) * sigma;
     
@@ -250,6 +260,8 @@ int main(int argc, char **argv)
         sigma = sigma_temp;       
       }
     }
+    std::cout << "u: " << std::endl << u << std::endl;
+    std::cout << "next" << std::endl;
     feature_list.clear();
 
     point_rst.header.stamp = ros::Time::now();
@@ -283,7 +295,7 @@ int main(int argc, char **argv)
     path_rst.poses.push_back(pose);
 
     pub_path.publish(path_rst);
-
+    
   	ros::spinOnce();
   	loop_rate.sleep();
   }
