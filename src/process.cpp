@@ -54,8 +54,7 @@ int main(int argc, char **argv)
   Eigen::Matrix3d R;
   Eigen::Quaternion<double> q;
   Eigen::Matrix3d qt = Eigen::Matrix3d::Identity();
-  qt(0,0) = 0.01;
-  qt(1,1) = 0.01;
+  qt *= 0.1;
   Eigen::MatrixXd kti;
   int n = 0;
 
@@ -109,37 +108,39 @@ int main(int argc, char **argv)
         yaw = yaw + pie;
       }
     }
-    ROS_INFO_STREAM("yaw: " << yaw);
-    
-    yaw -= u(2); 
+    ROS_INFO_STREAM("yaw: " << yaw); 
 
-    control << control_srv.response.linear_velocity.x*det_t, control_srv.response.linear_velocity.y*det_t, yaw;
-    std::cout << "control: " << std::endl << control << std::endl; 
-    // ROS_INFO_STREAM("Update ...");
+    control << control_srv.response.linear_velocity.x*det_t, control_srv.response.linear_velocity.y*det_t, 0;
 
     Eigen::MatrixXd fx_temp = Eigen::MatrixXd::Zero(3,3+3*n);
     fx_temp.block(0,0,3,3) = Eigen::Matrix3d::Identity();
     fx = fx_temp;
 
-    u += fx.transpose()*control;
+    Eigen::Vector3d control_new;
+    control_new(0) = control(0)*cos(yaw) - control(1) * sin(yaw);
+    control_new(1) = control(1)*cos(yaw) - control(0) * sin(yaw);
+    control_new(2) = control(2);
+
+    std::cout << "control: " << std::endl << control_new << std::endl; 
+    
+    u += fx.transpose()*control_new;
 
     sigma = sigma + fx.transpose()*R*fx;
     std::cout << "u: " << std::endl << u << std::endl;
-    // std::cout << "sigma: " << std::endl << sigma << std::endl;
-    // ROS_INFO_STREAM("Measurement ...");
-
+    std::cout << "sigma: " << std::endl << sigma << std::endl;
+    
     for(int i = 0; i < measurement_srv.response.res.points.size(); i++)
     { 
-      // ROS_INFO_STREAM( i+1 << "th measurement");
+      ROS_INFO_STREAM( i+1 << "th measurement");
       double x, y;
       x = measurement_srv.response.res.points[i].x;
       y = measurement_srv.response.res.points[i].y;
       Eigen::Vector3d z(x,y,0);
-      new_m(0) = x*cos(u(2)) - y*sin(u(2)) + u(0);
-      new_m(1) = x*sin(u(2)) + y*cos(u(2)) + u(1);
+      new_m(0) = x*cos(yaw) - y*sin(yaw) + u(0);
+      new_m(1) = x*sin(yaw) + y*cos(yaw) + u(1);
       new_m(2) = 0;
-      // std::cout << "new_m: " << std::endl << new_m << std::endl;
-      // std::cout << "z: " << std::endl << z << std::endl;
+      std::cout << "new_m: " << std::endl << new_m << std::endl;
+      std::cout << "z: " << std::endl << z << std::endl;
 
       for(int j = 0; j < n; j++)
       {
@@ -148,29 +149,29 @@ int main(int argc, char **argv)
         det_v(1) = u(4+j*3) - u(1);
         det_v(2) = 0;
 
-
         Eigen::Vector3d zkt;
-        zkt(0) = det_v(0) * cos(u(2)) + det_v(1) * sin(u(2));
-        zkt(1) = (-1) * det_v(0) * sin(u(2)) + det_v(1) * cos(u(2));
+        zkt(0) = det_v(0) * cos(yaw) + det_v(1) * sin(yaw);
+        zkt(1) = (-1) * det_v(0) * sin(yaw) + det_v(1) * cos(yaw);
         zkt(2) = 0;
-        // std::cout << "zkt: " << std::endl << zkt << std::endl;
+        std::cout << "zkt: " << std::endl << zkt << std::endl;
         
         Eigen::MatrixXd fxk = Eigen::MatrixXd::Zero(6,3+3*n);
         fxk.block(0,0,3,3) = Eigen::Matrix3d::Identity();
         fxk.block(3,3+3*j,3,3) = Eigen::Matrix3d::Identity();
         
         Eigen::MatrixXd h_base(3,6);
-        h_base << -cos(u(2)),  -sin(u(2)), zkt(1),  cos(u(2)),  sin(u(2)), 0,
-                  sin(u(2)),   -cos(u(2)), -zkt(0), -sin(u(2)), cos(u(2)), 0,
+        h_base << -cos(yaw),  -sin(yaw), 0,  cos(u(2)),  sin(u(2)), 0,
+                  sin(yaw),   -cos(yaw), 0, -sin(u(2)), cos(u(2)), 0,
                   0,           0,          0,       0,          0,         1; 
     
         Eigen::MatrixXd htk;
         htk = h_base*fxk;
+        std::cout << "htk: " << std::endl << htk << std::endl;
         
         Eigen::MatrixXd psi_k;
         psi_k = htk*sigma*htk.transpose()+qt;
-        // std::cout << "z-zkt: " << std::endl << z-zkt << std::endl;
-        // std::cout << "psi_k: " << std::endl << psi_k << std::endl;
+        std::cout << "z-zkt: " << std::endl << z-zkt << std::endl;
+        std::cout << "psi_k: " << std::endl << psi_k.inverse() << std::endl;
         double dis = (z-zkt).transpose() * psi_k.inverse()*(z-zkt);
         if (std::isnan(dis))
         {
@@ -186,11 +187,11 @@ int main(int argc, char **argv)
         item.h = htk;
         item.psi = psi_k;
         dis_list.push_back(item);
-        // ROS_INFO_STREAM("Push dis " << dis);
+        ROS_INFO_STREAM("Push dis " << dis);
       }
 
       int min_ind = n+1;
-      double min = 200; 
+      double min = 10; 
 
       for(int k = 0; k < dis_list.size(); k++)
       {
@@ -205,7 +206,7 @@ int main(int argc, char **argv)
       
       if (min_ind == n+1)
       {
-        // ROS_INFO_STREAM("New find");
+        ROS_INFO_STREAM("New find");
         kti = Eigen::Matrix3d::Zero();
         feature.fresh = true;
         feature.z = new_m;
@@ -215,12 +216,13 @@ int main(int argc, char **argv)
       }
       else 
       {
-        // ROS_INFO_STREAM("Update old");
+        ROS_INFO_STREAM("Update old");
 
         feature.fresh = false;
         feature.z = dis_list[min_ind].det;
         feature.hti = dis_list[min_ind].h;        
         feature.kti = sigma * feature.hti.transpose() * dis_list[min_ind].psi.inverse();
+        std::cout << "psi: " << std::endl << dis_list[min_ind].psi.inverse() << std::endl;
         feature_list.push_back(feature);
       }
       dis_list.clear();
@@ -236,10 +238,13 @@ int main(int argc, char **argv)
       {
         
         u_temp += (*it).kti*(*it).z;
+        std::cout << "detz: " << std::endl << (*it).z << std::endl;
+        std::cout << "kti: " << std::endl << (*it).kti << std::endl;
         psi_temp += (*it).kti*(*it).hti;
       }
     }
     std::cout << "u_temp: " << std::endl << u_temp << std::endl;
+    std::cout << "psi_temp: " << std::endl << psi_temp << std::endl;
     u += u_temp;
     sigma = (Eigen::MatrixXd::Identity(3+3*n,3+3*n) - psi_temp) * sigma;
     
@@ -270,7 +275,7 @@ int main(int argc, char **argv)
 
     geometry_msgs::Point32 point;
 
-    for (int i = 1; i < (u.rows()/3)-1; ++i)
+    for (int i = 1; i < (u.rows()/3); ++i)
     {
       point.x = u(3*i);
       point.y = u(3*i+1);
@@ -279,7 +284,7 @@ int main(int argc, char **argv)
     }
 
     pub_point.publish(point_rst);
-    point_rst.points.clear();
+    point_rst.points.clear(); 
 
     path_rst.header.stamp = ros::Time::now();
     path_rst.header.seq++;

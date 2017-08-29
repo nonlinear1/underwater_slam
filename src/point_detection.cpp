@@ -22,15 +22,13 @@ private:
 bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req, 
 								underwater_slam::PointDetection::Response &res)
 {
-	listener_.waitForTransform("/girona500", "/world",
-			ros::Time(0), ros::Duration(0.0));
-	listener_.lookupTransform("/girona500", "/world",
+	listener_.waitForTransform("/world", "/girona500",
+			ros::Time(0), ros::Duration(1.0));
+	listener_.lookupTransform("/world", "/girona500",
 			ros::Time(0), transform_);
 	Eigen::Vector3d pos(transform_.getOrigin().getX(),transform_.getOrigin().getY(),transform_.getOrigin().getZ());
 	double roll, yaw, pitch;
 	transform_.getBasis().getEulerYPR(yaw, pitch, roll);
-	yaw = -yaw;
-	ROS_INFO_STREAM("yaw: " << yaw);
 	Eigen::Vector3d temp;
 	double distence;
 	geometry_msgs::Point32 point;

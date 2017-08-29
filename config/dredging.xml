@@ -209,7 +209,7 @@
         <p>0</p>
         <y>0</y>
       </orientation>
-      <std>0.01</std>
+      <std>0.001</std>
     </dvlSensor>
 
    <multibeamSensor underwaterParticles="false">
