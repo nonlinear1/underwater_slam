@@ -118,7 +118,7 @@ int main(int argc, char **argv)
 
     Eigen::Vector3d control_new;
     control_new(0) = control(0)*cos(yaw) - control(1) * sin(yaw);
-    control_new(1) = control(1)*cos(yaw) - control(0) * sin(yaw);
+    control_new(1) = control(1)*cos(yaw) + control(0) * sin(yaw);
     control_new(2) = control(2);
 
     std::cout << "control: " << std::endl << control_new << std::endl; 
