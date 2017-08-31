@@ -40,14 +40,12 @@ bool Point_server::dectect_point(underwater_slam::PointDetection::Request &req,
 		if (distence < 8)
 		{
 			tf::Vector3 point_out(temp(0)*cos(yaw)+temp(1)*sin(yaw), temp(1)*cos(yaw)-temp(0)*sin(yaw), temp(2));
-			// ROS_INFO_STREAM("point :"<< std::endl << point_out.getX() << std::endl << point_out.getY() << std::endl << point_out.getZ() << std::endl);
 			point.x = point_out.getX();
 			point.y = point_out.getY();
 			point.z = point_out.getZ();
 			res.res.points.push_back(point);
 		}
 	}
-	// ROS_INFO_STREAM(res.res.points.size());
 	return true;
 }
 
