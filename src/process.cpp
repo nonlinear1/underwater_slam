@@ -55,12 +55,13 @@ int main(int argc, char **argv)
   Eigen::Matrix3d R;
   Eigen::Quaternion<double> q;
   Eigen::Matrix3d qt = Eigen::Matrix3d::Identity();
-  qt *= 0.005;
+  qt *= 0.1;
   Eigen::MatrixXd kti;
   int n = 0;
 
   R = Eigen::Matrix3d::Identity();
-  R *= 0.05;
+  R *= 0.01;
+  R(2,2) = 0.0001;
 
   std::vector<Feature> feature_list;
   std::vector<Dis_item> dis_list;
@@ -104,13 +105,7 @@ int main(int argc, char **argv)
     
     u += fx.transpose()*control_new;
 
-    Eigen::Matrix3d theta = Eigen::Matrix3d::Zero();
-    theta(0,2) = -control(0)*sin(yaw) - control(1) * cos(yaw);
-    theta(1,2) = -control(1)*sin(yaw) + control(0) * cos(yaw);
-
-    Eigen::MatrixXd Gt = Eigen::MatrixXd::Identity(3+3*n,3+3*n) + fx.transpose()*theta*fx;
-
-    sigma = Gt*sigma*Gt.transpose() + fx.transpose()*R*fx;
+    sigma = sigma + fx.transpose()*R*fx;
     
     std::cout << "u: " << std::endl << u << std::endl;
     std::cout << "sigma: " << std::endl << sigma << std::endl;
