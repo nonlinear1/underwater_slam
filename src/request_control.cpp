@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <boost/thread/mutex.hpp>
+#include "tf/transform_datatypes.h"
 #include "underwater_slam/RequireControl.h"
 #include "underwater_sensor_msgs/DVL.h"
 #include "sensor_msgs/Imu.h"
@@ -52,6 +53,7 @@ bool Control_server::request_control(underwater_slam::RequireControl::Request &r
 	mutex_.lock();
 	res.orientation = q_;
 	res.linear_velocity = vel_;
+	res.yaw = tf::getYaw(q_);
 	mutex_.unlock();
 
 	return true;

@@ -8,6 +8,7 @@
 #include "geometry_msgs/Point32.h"
 #include "geometry_msgs/PoseStamped.h"
 #include "nav_msgs/Path.h"
+#include "tf/transform_datatypes.h"
 #include "underwater_slam/PointDetection.h"
 #include "underwater_slam/RequireControl.h"
 
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
 
   R = Eigen::Matrix3d::Identity();
   R *= 0.01;
+  R(2,2) = 0.0001;
 
   std::vector<Feature> feature_list;
   std::vector<Dis_item> dis_list;
@@ -69,11 +71,9 @@ int main(int argc, char **argv)
   ros::Duration duration;
   double det_t;
   before = ros::Time::now();
-  ROS_INFO_STREAM("Begin count ..." << std::endl << "u:" << std::endl << u);
 
   while(ros::ok())
   {	
-    ROS_INFO_STREAM("Load data ...");
     after = ros::Time::now();
     duration = after - before;
     before = after;
@@ -88,37 +88,18 @@ int main(int argc, char **argv)
       ROS_ERROR_STREAM("measurement serve fail!");
     }
 
-    q = Eigen::Quaternion<double>(control_srv.response.orientation.w,
-                                  control_srv.response.orientation.x,
-                                  control_srv.response.orientation.y,
-                                  control_srv.response.orientation.z);
-    auto rotation = q.toRotationMatrix();
-    double yaw = atan(rotation(1,0)/rotation(0,0));
-    if (yaw > 0)
-    {
-      if (rotation(1,0) < 0)
-      {
-        yaw =yaw - pie;
-      }
-    }
-    else
-    {
-      if (rotation(1,0) > 0)
-      {
-        yaw = yaw + pie;
-      }
-    }
-    ROS_INFO_STREAM("yaw: " << yaw); 
-
-    control << control_srv.response.linear_velocity.x*det_t, control_srv.response.linear_velocity.y*det_t, 0;
+    double yaw = control_srv.response.yaw;
+    
+    control << control_srv.response.linear_velocity.x*det_t, control_srv.response.linear_velocity.y*det_t, yaw-u(2);
 
     Eigen::MatrixXd fx_temp = Eigen::MatrixXd::Zero(3,3+3*n);
     fx_temp.block(0,0,3,3) = Eigen::Matrix3d::Identity();
     fx = fx_temp;
 
     Eigen::Vector3d control_new;
-    control_new(0) = control(0)*cos(yaw) - control(1) * sin(yaw);
-    control_new(1) = control(1)*cos(yaw) + control(0) * sin(yaw);
+    
+    control_new(0) = control(0)*cos(u(2)) - control(1) * sin(u(2));
+    control_new(1) = control(1)*cos(u(2)) + control(0) * sin(u(2));
     control_new(2) = control(2);
 
     std::cout << "control: " << std::endl << control_new << std::endl; 
@@ -126,6 +107,7 @@ int main(int argc, char **argv)
     u += fx.transpose()*control_new;
 
     sigma = sigma + fx.transpose()*R*fx;
+    
     std::cout << "u: " << std::endl << u << std::endl;
     std::cout << "sigma: " << std::endl << sigma << std::endl;
     
@@ -136,8 +118,8 @@ int main(int argc, char **argv)
       x = measurement_srv.response.res.points[i].x;
       y = measurement_srv.response.res.points[i].y;
       Eigen::Vector3d z(x,y,0);
-      new_m(0) = x*cos(yaw) - y*sin(yaw) + u(0);
-      new_m(1) = x*sin(yaw) + y*cos(yaw) + u(1);
+      new_m(0) = x*cos(u(2)) - y*sin(u(2)) + u(0);
+      new_m(1) = x*sin(u(2)) + y*cos(u(2)) + u(1);
       new_m(2) = 0;
       std::cout << "new_m: " << std::endl << new_m << std::endl;
       std::cout << "z: " << std::endl << z << std::endl;
@@ -150,8 +132,8 @@ int main(int argc, char **argv)
         det_v(2) = 0;
 
         Eigen::Vector3d zkt;
-        zkt(0) = det_v(0) * cos(yaw) + det_v(1) * sin(yaw);
-        zkt(1) = (-1) * det_v(0) * sin(yaw) + det_v(1) * cos(yaw);
+        zkt(0) = det_v(0) * cos(u(2)) + det_v(1) * sin(u(2));
+        zkt(1) = (-1) * det_v(0) * sin(u(2)) + det_v(1) * cos(u(2));
         zkt(2) = 0;
         std::cout << "zkt: " << std::endl << zkt << std::endl;
         
@@ -160,8 +142,8 @@ int main(int argc, char **argv)
         fxk.block(3,3+3*j,3,3) = Eigen::Matrix3d::Identity();
         
         Eigen::MatrixXd h_base(3,6);
-        h_base << -cos(yaw),  -sin(yaw), 0,  cos(u(2)),  sin(u(2)), 0,
-                  sin(yaw),   -cos(yaw), 0, -sin(u(2)), cos(u(2)), 0,
+        h_base << -cos(u(2)),  -sin(u(2)), zkt(1),  cos(u(2)),  sin(u(2)), 0,
+                  sin(u(2)),   -cos(u(2)), -zkt(0), -sin(u(2)), cos(u(2)), 0,
                   0,           0,          0,       0,          0,         1; 
     
         Eigen::MatrixXd htk;
@@ -171,7 +153,7 @@ int main(int argc, char **argv)
         Eigen::MatrixXd psi_k;
         psi_k = htk*sigma*htk.transpose()+qt;
         std::cout << "z-zkt: " << std::endl << z-zkt << std::endl;
-        std::cout << "psi_k: " << std::endl << psi_k.inverse() << std::endl;
+        std::cout << "psi_k: " << std::endl << psi_k << std::endl;
         double dis = (z-zkt).transpose() * psi_k.inverse()*(z-zkt);
         if (std::isnan(dis))
         {
@@ -210,7 +192,6 @@ int main(int argc, char **argv)
         kti = Eigen::Matrix3d::Zero();
         feature.fresh = true;
         feature.z = new_m;
-        // std::cout << "pos: " << std::endl << feature.z << std::endl;
         feature.kti = qt;
         feature_list.push_back(feature);
       }
@@ -222,7 +203,6 @@ int main(int argc, char **argv)
         feature.z = dis_list[min_ind].det;
         feature.hti = dis_list[min_ind].h;        
         feature.kti = sigma * feature.hti.transpose() * dis_list[min_ind].psi.inverse();
-        std::cout << "psi: " << std::endl << dis_list[min_ind].psi.inverse() << std::endl;
         feature_list.push_back(feature);
       }
       dis_list.clear();
