@@ -60,33 +60,21 @@ add_executable(point_detection src/point_detection.cpp)
 add_executable(request_control src/request_control.cpp)
 add_executable(process src/process.cpp)
 
- target_link_libraries(laser_convey
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
-   ${Boost_LIBRARIES}
- )
   target_link_libraries(laser_convey_now
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${Boost_LIBRARIES}
- )
-  target_link_libraries(pcl_reg
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
-   ${Boost_LIBRARIES}
- )
-  target_link_libraries(pcl_add
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
-   ${Boost_LIBRARIES}
- )
+  )
+
   target_link_libraries(save_pcl
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
- )
+  )
+  
   target_link_libraries(point_detection
     ${catkin_LIBRARIES}
   )
+  
   target_link_libraries(process
     ${catkin_LIBRARIES}
     EKF_core
