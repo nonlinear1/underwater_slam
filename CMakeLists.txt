@@ -42,8 +42,16 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  include/
 )
-link_directories(${PCL_LIBRARY_DIRS})
+
+add_library(
+  EKF_core
+  STATIC 
+  src/EKF_core.cpp
+  )
+
+link_directories(${PCL_LIBRARY_DIRS} src/)
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(laser_convey src/laser_convey.cpp)
@@ -91,6 +99,7 @@ add_executable(process src/process.cpp)
   )
   target_link_libraries(process
     ${catkin_LIBRARIES}
+    EKF_core
   )
   target_link_libraries(request_control
     ${catkin_LIBRARIES}
