@@ -46,24 +46,26 @@ include_directories(
 )
 
 add_library(
-  EKF_core
+  EKF_lib
   STATIC 
   lib/EKF_core.cpp
+  lib/accumulater.cpp
   )
 
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(laser_convey_now src/laser_convey_now.cpp)
+add_executable(laser_accumulater src/laser_accumulater.cpp)
 add_executable(save_pcl src/save_pcl.cpp)
 add_executable(point_detection src/point_detection.cpp)
 add_executable(request_control src/request_control.cpp)
 add_executable(process src/process.cpp)
 
-  target_link_libraries(laser_convey_now
+  target_link_libraries(laser_accumulater
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${Boost_LIBRARIES}
+   EKF_lib
   )
 
   target_link_libraries(save_pcl
@@ -77,7 +79,7 @@ add_executable(process src/process.cpp)
   
   target_link_libraries(process
     ${catkin_LIBRARIES}
-    EKF_core
+    EKF_lib
   )
   target_link_libraries(request_control
     ${catkin_LIBRARIES}

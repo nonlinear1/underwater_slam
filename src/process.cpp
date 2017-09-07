@@ -13,22 +13,6 @@
 #include "underwater_slam/RequireControl.h"
 #include "EKF_core.h"
 
-struct Feature
-{
-  bool fresh;
-  Eigen::Vector3d z;
-  Eigen::MatrixXd kti;
-  Eigen::MatrixXd hti;
-};
-
-struct Dis_item
-{ 
-  double dis;
-  Eigen::Vector3d det;
-  Eigen::MatrixXd h;
-  Eigen::MatrixXd psi;
-};
-
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "process");

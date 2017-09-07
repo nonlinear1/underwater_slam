@@ -36,4 +36,4 @@ private:
 	int N_;
 };
 
-#endif
+#endif // EKF_core.h
