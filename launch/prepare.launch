@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+	
+<launch>
+	<node name="point_serve" pkg="underwater_slam" type="point_detection" />
+	<node name="control_serve" pkg="underwater_slam" type="request_control" />
+</launch>

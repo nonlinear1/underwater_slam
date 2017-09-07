@@ -31,12 +31,12 @@ EKF_core::EKF_core(double r1, double r2, double r3, double q1, double q2, double
 	u_ = Eigen::VectorXd::Zero(3);
 	R_ = Eigen::Matrix3d::Identity();
 	R_(0,0) = r1;
-	R_(1,1) = r1;
-	R_(2,2) = r1;
+	R_(1,1) = r2;
+	R_(2,2) = r3;
 	qt_ = Eigen::Matrix3d::Identity();
 	qt_(0,0) = q1;
-	qt_(1,1) = q1;
-	qt_(2,2) = q1;
+	qt_(1,1) = q2;
+	qt_(2,2) = q3;
 	N_ = 0;
 }
 

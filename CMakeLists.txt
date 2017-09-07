@@ -48,16 +48,12 @@ include_directories(
 add_library(
   EKF_core
   STATIC 
-  src/EKF_core.cpp
+  lib/EKF_core.cpp
   )
 
-link_directories(${PCL_LIBRARY_DIRS} src/)
+link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
-add_executable(laser_convey src/laser_convey.cpp)
-add_executable(pcl_reg src/pcl_reg.cpp)
-add_executable(pcl_add src/pcl_add.cpp)
-add_executable(pcl_img src/pcl_img.cpp)
 add_executable(laser_convey_now src/laser_convey_now.cpp)
 add_executable(save_pcl src/save_pcl.cpp)
 add_executable(point_detection src/point_detection.cpp)
@@ -83,12 +79,6 @@ add_executable(process src/process.cpp)
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${Boost_LIBRARIES}
- )
-  target_link_libraries(pcl_img
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
-   ${Boost_LIBRARIES}
-   ${OpenCV_LIBS} 
  )
   target_link_libraries(save_pcl
    ${catkin_LIBRARIES}
