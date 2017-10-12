@@ -60,6 +60,9 @@ add_executable(save_pcl src/save_pcl.cpp)
 add_executable(point_detection src/point_detection.cpp)
 add_executable(request_control src/request_control.cpp)
 add_executable(process src/process.cpp)
+add_executable(controller src/boat_tele.cpp)
+add_executable(scan src/scan.cpp)
+
 
   target_link_libraries(laser_accumulater
    ${catkin_LIBRARIES}
@@ -82,6 +85,14 @@ add_executable(process src/process.cpp)
     EKF_lib
   )
   target_link_libraries(request_control
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+  )
+  target_link_libraries(controller
+    ${catkin_LIBRARIES}
+    ${Boost_LIBRARIES}
+  )
+  target_link_libraries(scan
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
   )
