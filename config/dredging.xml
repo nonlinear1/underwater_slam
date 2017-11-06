@@ -17,9 +17,9 @@
     <fog>
       <density> 0.1</density>
       <color>
-  <r>0</r>
-  <g>0.05</g>
-  <b>0.3</b>
+        <r>0</r>
+        <g>0.05</g>
+        <b>0.3</b>
       </color>
     </fog>
     <color>
@@ -33,6 +33,7 @@
       <b> 0.005 </b>
     </attenuation>
   </oceanState>
+
   <simParams>
     <disableShaders> 0 </disableShaders>
     <resw> 800 </resw>
@@ -52,6 +53,7 @@
       <target>girona500/end_effector</target>
     </showTrajectory>
   </simParams>
+
   <camera>
     <freeMotion> 1 </freeMotion>
     <objectToTrack>girona500/base_link</objectToTrack>
@@ -271,7 +273,7 @@
     </physics>
   </object>
     
-    <object buried="0.75">
+  <object buried="0.75">
     <name> amphora1 </name>
     <file> objects/full_amphora.osg  </file>
     <position>

@@ -27,7 +27,7 @@ private:
 
 TeleopUWsim::TeleopUWsim():
   linear_(1),
-  angular_(0)
+  angular_(3)
 {
   l_scale_ = a_scale_ = 1;
   nh_.param("axis_linear", linear_, linear_);
@@ -35,9 +35,7 @@ TeleopUWsim::TeleopUWsim():
   nh_.param("scale_angular", a_scale_, a_scale_);
   nh_.param("scale_linear", l_scale_, l_scale_);
 
-
   vel_pub_ = nh_.advertise<nav_msgs::Odometry>("/dataNavigator", 1);
-
 
   joy_sub_ = nh_.subscribe<sensor_msgs::Joy>("joy", 10, &TeleopUWsim::joyCallback, this);
 

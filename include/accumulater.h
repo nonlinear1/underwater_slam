@@ -7,6 +7,8 @@
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Point32.h"
 #include "tf/transform_listener.h"
+#include "geometry_msgs/Transform.h"
+#include "geometry_msgs/TransformStamped.h"
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include "boost/numeric/ublas/matrix.hpp"
@@ -26,6 +28,7 @@ public:
   bool ifready(){return ready_;}
   void setbase();
   void init();
+  void copy_transform(geometry_msgs::Transform & pos);
   void copy_pointcloud(std::vector<sensor_msgs::PointCloud> & pcl);
   void transLaser (const sensor_msgs::LaserScan& scan_in, sensor_msgs::PointCloud & cloud_out, tf::StampedTransform& transform);
 

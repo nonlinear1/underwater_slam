@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   underwater_sensor_msgs
   nav_msgs
+  pcl_ros
 )
 
 find_package(PCL 1.8  REQUIRED)
@@ -62,6 +63,7 @@ add_executable(request_control src/request_control.cpp)
 add_executable(process src/process.cpp)
 add_executable(controller src/boat_tele.cpp)
 add_executable(scan src/scan.cpp)
+add_executable(front_end src/front_end.cpp)
 
 
   target_link_libraries(laser_accumulater
@@ -95,4 +97,9 @@ add_executable(scan src/scan.cpp)
   target_link_libraries(scan
     ${catkin_LIBRARIES}
     ${Boost_LIBRARIES}
+  )
+  target_link_libraries(front_end
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+   ${Boost_LIBRARIES}
   )

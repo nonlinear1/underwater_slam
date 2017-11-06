@@ -3,6 +3,7 @@
 #include "sensor_msgs/PointCloud.h"
 #include "sensor_msgs/LaserScan.h"
 #include "geometry_msgs/Point32.h"
+#include "geometry_msgs/Transform.h"
 #include "tf/transform_listener.h"
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -20,11 +21,14 @@ int main(int argc, char **argv)
   ros::init(argc, argv, "laser_convey");
   tf::StampedTransform transform;
   tf::TransformListener listener;
+  geometry_msgs::Transform pos;
   Accumulater accumulater(num_of_split);
 
   ros::NodeHandle node;
   
-  ros::Publisher chatter_pub = node.advertise<sensor_msgs::PointCloud>("PointCloudConveyNow", 1);
+  ros::Publisher chatter_pub = node.advertise<sensor_msgs::PointCloud>("PointCloudSonar", 1);
+
+  ros::Publisher transform_pub = node.advertise<geometry_msgs::Transform>("PointCloudTransform", 1);
   
   ros::Subscriber sub = node.subscribe("g500/multibeam", 10, &Accumulater::callback, &accumulater);
 
@@ -57,6 +61,8 @@ int main(int argc, char **argv)
       else 
       {
         first = false;
+        accumulater.copy_transform(pos);
+        transform_pub.publish(pos);
         chatter_pub.publish(cloud_rst[0]);
         cloud_rst[0].points.clear();
         cloud_rst.push_back(cloud_rst[0]);

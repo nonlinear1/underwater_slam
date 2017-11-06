@@ -44,6 +44,13 @@ void Accumulater::copy_pointcloud(std::vector<sensor_msgs::PointCloud> & pcl)
   unlock();
 }
 
+void Accumulater::copy_transform(geometry_msgs::Transform & pos)
+{
+  geometry_msgs::TransformStamped stampedpos;
+  tf::transformStampedTFToMsg(transform_base_list_[0], stampedpos);
+  pos = stampedpos.transform;
+}
+
 
 void Accumulater::callback (const sensor_msgs::LaserScan::ConstPtr& scan_in)
 {
