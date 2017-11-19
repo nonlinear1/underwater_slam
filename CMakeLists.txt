@@ -64,6 +64,7 @@ add_executable(process src/process.cpp)
 add_executable(controller src/boat_tele.cpp)
 add_executable(scan src/scan.cpp)
 add_executable(front_end src/front_end.cpp)
+add_executable(back_end src/back_end.cpp)
 
 
   target_link_libraries(laser_accumulater
@@ -99,6 +100,12 @@ add_executable(front_end src/front_end.cpp)
     ${Boost_LIBRARIES}
   )
   target_link_libraries(front_end
+   ${catkin_LIBRARIES}
+   ${PCL_LIBRARIES}
+   ${Boost_LIBRARIES}
+  )
+
+  target_link_libraries(back_end
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${Boost_LIBRARIES}

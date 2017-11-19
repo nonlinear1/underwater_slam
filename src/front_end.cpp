@@ -47,6 +47,21 @@ public:
 		return ready_;
 	}
 
+	void sented()
+	{
+		ready_ = false;
+	}
+
+	void lock()
+	{
+		mutex_.lock();
+	}
+
+	void unlock()
+	{
+		mutex_.unlock();
+	}
+
 	void callback(const sensor_msgs::LaserScan::ConstPtr& scan_in)
 	{	
 		pcl::PointCloud<pcl::PointXYZ> cloud;
@@ -91,12 +106,10 @@ public:
 		  {
 		  	cloud_ = temp_cloud_;
 		  	temp_cloud_.clear();
+		  	mutex_.lock();
 		  	ready_ = true;
+		  	mutex_.unlock();
 		  	count_num_ = 0;
-		  }
-		  else
-		  {
-		  	ready_ = false;
 		  }
 		  pre_pos_ = pos_;
 		}
@@ -112,20 +125,21 @@ private:
 	bool ready_q_;
 	bool ready_;
 	int count_num_;
+	boost::mutex mutex_;
 };
 
 int main(int argc, char **argv)
 {
-	ros::init(argc, argv, "pcl_icp");
+	ros::init(argc, argv, "front_end");
 	ros::NodeHandle node;
 
 	Front_end front_end;
 	underwater_slam::RequireControl control_srv;
 
-	ros::Subscriber sub = node.subscribe("g500/multibeam", 10, &Front_end::callback, &front_end);
+	ros::Subscriber sub = node.subscribe<sensor_msgs::LaserScan>("g500/multibeam", 10, &Front_end::callback, &front_end);
   ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
   ros::Publisher pub_path = node.advertise<nav_msgs::Path>("ImuPath", 1);
-  ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("points", 1);
+  ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Points", 1);
 
 	ros::Rate loop_rate(60);
 
@@ -176,10 +190,13 @@ int main(int argc, char **argv)
     path_rst.poses.push_back(pose);
     pub_path.publish(path_rst);
 
+    front_end.lock();
     if (front_end.ready())
     {
+    	front_end.sented();
     	pub_points.publish(front_end.points());
     }
+    front_end.unlock();
 
     ros::spinOnce();
   	loop_rate.sleep();
