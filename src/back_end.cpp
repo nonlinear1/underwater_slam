@@ -1,44 +1,112 @@
-#include "ros/ros.h"
-#include <pcl_ros/point_cloud.h>
+#include <ros/ros.h>
+#include <boost/thread/mutex.hpp>
+#include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl/common/centroid.h>
-#include <pcl/registration/icp.h>
+#include <pcl/common/transforms.h>
+#include <pcl_ros/point_cloud.h>
+#include "geometry_msgs/Point.h"
+#include "underwater_slam/Node.h"
 
-using namespace pcl;
+struct Node 
+{
+	Eigen::Vector2d centre;
+	std::vector<Eigen::Vector2d> size;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
+	unsigned int seq;
+	Node(Eigen::Vector2d centre_in, std::vector<Eigen::Vector2d> size_in, unsigned int seq_in)
+	{
+		centre = centre_in;
+		size = size_in;
+		seq = seq_in;
+	}
+	Node(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_in)
+	{
+		cloud = cloud_in;
+	}
+};
 
-class Back_end
+
+class BackEnd
 {
 public:
-	Back_end()
+	BackEnd()
 	{
-		// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-		icp_.setMaxCorrespondenceDistance (0.05);
-		// Set the maximum number of iterations (criterion 1)
-		icp_.setMaximumIterations (50);
-		// Set the transformation epsilon (criterion 2)
-		icp_.setTransformationEpsilon (1e-8);
-		// Set the euclidean distance difference epsilon (criterion 3)
-		icp_.setEuclideanFitnessEpsilon (1);
-
-		ready_ = false;
+		offset_ = 0;
+		data_.clear();
+		first_ = true;
 	}
+	~BackEnd() {}
 
-	void callback(const PointCloud<PointXYZ>::ConstPtr& msg)
+	void node_callback(const underwater_slam::Node::ConstPtr& node)
 	{
-		if (ready_)
+		if(first_)
 		{
-			icp_.setInputSource (msg);
-			icp_.setInputTarget (&target_);
-			icp_.align(&target_);
-			Eigen::Matrix4f transformation = icp_.getFinalTransformation ();
-			ROS_INFO_STREAM(transformation);
-		}		
-		target_ = PointCloud<PointXYZ>(*msg);		
+			offset_ = node->seq;
+			first_ = false;
+		}
+		mutex_.lock();
+		if (data_.size() > node->seq - offset_)
+		{
+			data_[node->seq-offset_].centre = trans_point(node->centre);
+			data_[node->seq-offset_].size = trans_size(node->size);
+			data_[node->seq-offset_].seq = node->seq - offset_;
+		}
+		else
+		{
+			Node* node_new = new Node(trans_point(node->centre), trans_size(node->size), node->seq - offset_);
+			data_.push_back(*node_new);
+			std::cout  << "add node" << node->seq << std::endl;
+
+		}
+		mutex_.unlock();
 	}
+
+	void cloud_callback(const pcl::PointCloud<pcl::PointXYZ>::ConstPtr& cloud)
+	{
+		if(first_)
+		{
+			offset_ = cloud->header.seq;
+			first_ = false;
+		}
+		mutex_.lock();
+		if (data_.size() > cloud->header.seq - offset_)
+		{
+			data_[cloud->header.seq-offset_].cloud = cloud->makeShared();
+		}
+		else
+		{
+			Node* node_new = new Node(cloud->makeShared());
+			data_.push_back(*node_new);
+			std::cout  << "add node" << cloud->header.seq << std::endl;
+		}
+		mutex_.unlock();
+	}
+
 private:
-	IterativeClosestPoint<PointXYZ, PointXYZ> icp_;
-	PointCloud<PointXYZ> target_;
-	bool ready_;
+
+	Eigen::Vector2d trans_point(geometry_msgs::Point point)
+	{
+		Eigen::Vector2d vec;
+		vec << point.x, point.y;
+
+		return vec;
+	}
+
+	std::vector<Eigen::Vector2d> trans_size(std::vector<geometry_msgs::Point> points)
+	{
+		std::vector<Eigen::Vector2d> size;
+		for(int i = 0; i < points.size(); i++)
+		{
+			size.push_back(trans_point(points[i]));
+		}
+
+		return size;
+	}
+
+	std::vector<Node> data_;
+	boost::mutex mutex_;
+	unsigned int offset_;
+	bool first_;
 };
 
 int main(int argc, char **argv)
@@ -46,10 +114,12 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "back_end");
 	ros::NodeHandle node;
 
-	Back_end back_end;
+	BackEnd back_end;
 
-	ros::Subscriber sub = node.subscribe<pcl::PointCloud<pcl::PointXYZ>>("Points", 10, &Back_end::callback, &back_end);
+	ros::Subscriber sub_node = node.subscribe<underwater_slam::Node>("NodeMsg", 10, &BackEnd::node_callback, &back_end);
+	ros::Subscriber sub_point = node.subscribe<pcl::PointCloud<pcl::PointXYZ>>("Points", 10, &BackEnd::cloud_callback, &back_end);
 
 	ros::spin();
+
 	return 0;
-}
+}	

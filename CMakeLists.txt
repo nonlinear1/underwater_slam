@@ -3,6 +3,8 @@ project(underwater_slam)
 
 add_definitions(-std=c++11)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake_module/")
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -16,18 +18,26 @@ find_package(catkin REQUIRED COMPONENTS
   underwater_sensor_msgs
   nav_msgs
   pcl_ros
+  message_generation
 )
 
 find_package(PCL 1.8  REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(G2O REQUIRED)
 
 add_service_files(
   FILES 
   PointDetection.srv
   RequireControl.srv
   )
+
+add_message_files(
+  FILES
+  Node.msg
+)
+
 generate_messages(
   DEPENDENCIES
   sensor_msgs
@@ -36,6 +46,7 @@ generate_messages(
 
 catkin_package(
   DEPENDS Boost
+  CATKIN_DEPENDS message_runtime
 )
 
 include_directories(
@@ -57,7 +68,6 @@ link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})
 
 add_executable(laser_accumulater src/laser_accumulater.cpp)
-add_executable(save_pcl src/save_pcl.cpp)
 add_executable(point_detection src/point_detection.cpp)
 add_executable(request_control src/request_control.cpp)
 add_executable(process src/process.cpp)
@@ -65,18 +75,13 @@ add_executable(controller src/boat_tele.cpp)
 add_executable(scan src/scan.cpp)
 add_executable(front_end src/front_end.cpp)
 add_executable(back_end src/back_end.cpp)
-
+add_executable(slam src/slam.cpp)
 
   target_link_libraries(laser_accumulater
    ${catkin_LIBRARIES}
    ${PCL_LIBRARIES}
    ${Boost_LIBRARIES}
    EKF_lib
-  )
-
-  target_link_libraries(save_pcl
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
   )
   
   target_link_libraries(point_detection
@@ -105,8 +110,14 @@ add_executable(back_end src/back_end.cpp)
    ${Boost_LIBRARIES}
   )
 
-  target_link_libraries(back_end
-   ${catkin_LIBRARIES}
-   ${PCL_LIBRARIES}
-   ${Boost_LIBRARIES}
+ target_link_libraries(back_end
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${Boost_LIBRARIES}
+ )
+
+ target_link_libraries(slam
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${Boost_LIBRARIES}
   )

@@ -8,8 +8,16 @@
 #include <pcl/common/transforms.h>
 #include "nav_msgs/Path.h"
 #include "underwater_slam/RequireControl.h"
+#include "underwater_slam/Node.h"
+#include "geometry_msgs/Point.h"
 #include <pcl_ros/point_cloud.h>
 
+struct Node 
+{
+	unsigned int seq;
+	Eigen::Vector2d centre;
+	std::vector<Eigen::Vector2d> size;
+};
 
 class Front_end
 {
@@ -23,6 +31,7 @@ public:
 		temp_cloud_.header.frame_id = "world";
 		pre_pos_ << 0, 0;
 		count_num_ = 0;
+		seq_ = 0;
 	}
 
 	void set_pos(Eigen::Vector2d& pos)
@@ -60,6 +69,38 @@ public:
 	void unlock()
 	{
 		mutex_.unlock();
+	}
+
+	geometry_msgs::Point change_vec(Eigen::Vector2d vec)
+	{
+		geometry_msgs::Point point;
+		point.x = vec[0];
+		point.y = vec[1];
+		point.z = 0;
+
+		return point;
+	}
+
+	Eigen::Vector2d change_point(pcl::PointXYZ point)
+	{
+		Eigen::Vector2d vec;
+		vec[0] = point.x;
+		vec[1] = point.y;
+		return vec;
+	}
+
+	underwater_slam::Node node_msg()
+	{
+		underwater_slam::Node message;
+		message.seq = node_.seq;
+		message.centre.x = node_.centre[0];
+		message.centre.y = node_.centre[1];
+		message.centre.z = 0;
+		for (int i = 0; i < 4; ++i)
+		{
+			message.size.push_back(change_vec(node_.size[i]));
+		}
+		return message;
 	}
 
 	void callback(const sensor_msgs::LaserScan::ConstPtr& scan_in)
@@ -101,21 +142,38 @@ public:
 		  transform.rotate (q_);
 		  pcl::transformPointCloud (cloud, cloud, transform);
 		  temp_cloud_+=cloud;
-		  count_num_++;
+		  if (count_num_ == 25)
+		  {
+		  	node_.centre = pos_;
+		  }
+		  if (count_num_ == 0 || count_num_ == 50)
+		  {
+		  	if (count_num_ == 0)
+		  	{
+		  		node_.size.clear();
+		  	}
+		  	node_.size.push_back(change_point(cloud[0]));
+		  	node_.size.push_back(change_point(cloud[cloud.size()]));
+		  }
 		  if (count_num_ >= 50)
 		  {
 		  	cloud_ = temp_cloud_;
+		  	cloud_.header.seq = seq_;
+		  	node_.seq = seq_;
+		  	seq_++;
 		  	temp_cloud_.clear();
 		  	mutex_.lock();
 		  	ready_ = true;
 		  	mutex_.unlock();
-		  	count_num_ = 0;
+		  	count_num_ = -1;
 		  }
+		  count_num_++;
 		  pre_pos_ = pos_;
 		}
 	}
 
 private:
+	Node node_;
 	Eigen::Vector2d pos_;
 	Eigen::Quaternionf q_;
 	Eigen::Vector2d pre_pos_;
@@ -125,6 +183,7 @@ private:
 	bool ready_q_;
 	bool ready_;
 	int count_num_;
+	unsigned int seq_;
 	boost::mutex mutex_;
 };
 
@@ -140,6 +199,7 @@ int main(int argc, char **argv)
   ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
   ros::Publisher pub_path = node.advertise<nav_msgs::Path>("ImuPath", 1);
   ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Points", 1);
+  ros::Publisher pub_node = node.advertise<underwater_slam::Node>("NodeMsg", 1);
 
 	ros::Rate loop_rate(60);
 
@@ -163,7 +223,12 @@ int main(int argc, char **argv)
     before = after;
     det_t = duration.toSec();
 
-		control_client.call(control_srv);
+		if(!control_client.call(control_srv))
+  	{	
+    	ROS_ERROR("Failed to call service");
+    	return 1;
+  	}
+		
 		yaw = control_srv.response.yaw;
 		q.w() = control_srv.response.orientation.w;
 		q.vec() << control_srv.response.orientation.x, control_srv.response.orientation.y, control_srv.response.orientation.z;
@@ -195,6 +260,7 @@ int main(int argc, char **argv)
     {
     	front_end.sented();
     	pub_points.publish(front_end.points());
+    	pub_node.publish(front_end.node_msg());
     }
     front_end.unlock();
 
