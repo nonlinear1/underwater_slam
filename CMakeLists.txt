@@ -26,6 +26,7 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(OpenCV REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(G2O REQUIRED)
+find_package(CSparse REQUIRED)
 
 add_service_files(
   FILES 
@@ -54,6 +55,8 @@ include_directories(
   ${PCL_INCLUDE_DIRS}
   ${Boost_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CSPARSE_INCLUDE_DIR}
   include/
 )
 
@@ -120,4 +123,10 @@ add_executable(slam src/slam.cpp)
   ${catkin_LIBRARIES}
   ${PCL_LIBRARIES}
   ${Boost_LIBRARIES}
+  ${G2O_CORE_LIBRARY}
+  ${G2O_STUFF_LIBRARY}
+  ${G2O_SOLVER_CSPARSE}
+  ${CSPARSE_LIBRARY}
+  ${G2O_SOLVER_CSPARSE_EXTENSION}
+  ${G2O_SOLVER_SLAM2D_LINEAR}
   )

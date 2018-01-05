@@ -10,7 +10,7 @@ struct Node
 	unsigned int seq;
 	Eigen::Vector2d centre;
 	Eigen::Quaternionf centre_q;
-	double bound[4];
+	double R;
 	pcl::PointCloud<pcl::PointXYZ> cloud;
 };
 

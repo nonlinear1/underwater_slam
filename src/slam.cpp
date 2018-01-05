@@ -12,6 +12,13 @@
 #include <pcl_ros/point_cloud.h>
 #include "Node.hpp"
 #include "FrontEnd.hpp"
+#include "g2o/types_slam.hpp"
+#include "g2o/core/sparse_optimizer.h"
+#include "g2o/core/block_solver.h"
+#include "g2o/core/factory.h"
+#include "g2o/core/optimization_algorithm_factory.h"
+#include "g2o/core/optimization_algorithm_gauss_newton.h"
+#include "g2o/solvers/csparse/linear_solver_csparse.h"
  
 int main(int argc, char **argv)
 {
@@ -28,6 +35,7 @@ int main(int argc, char **argv)
 	ros::Subscriber sub = node.subscribe<sensor_msgs::LaserScan>("g500/multibeam", 10, &FrontEnd::laser_callback, &front_end);
   ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
   ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Points", 1);
+  ros::Publisher pub_merge_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Merge_Points", 1);
 
 	ros::Rate loop_rate(60);
 
@@ -39,6 +47,19 @@ int main(int argc, char **argv)
   double det_t;
   before = ros::Time::now();
   nav_msgs::Path path_rst;
+
+  typedef g2o::BlockSolver<g2o::BlockSolverTraits<-1, -1> >  SlamBlockSolver;
+  typedef g2o::LinearSolverCSparse<SlamBlockSolver::PoseMatrixType> SlamLinearSolver;
+
+  GraphWithTree optimizer;
+  auto linearSolver = g2o::make_unique<SlamLinearSolver>();
+  linearSolver->setBlockOrdering(false);
+  g2o::OptimizationAlgorithmGaussNewton* solver = new g2o::OptimizationAlgorithmGaussNewton(
+    g2o::make_unique<SlamBlockSolver>(std::move(linearSolver)));
+
+  optimizer.setAlgorithm(solver);
+  optimizer.set_sigma_for_edge(0.1);
+  optimizer.set_sigma_for_icp(0.1);
 
 	while(ros::ok())
 	{
@@ -75,13 +96,30 @@ int main(int argc, char **argv)
 		front_end.lock();
     if (front_end.ready())
     {
+    	Node node = front_end.get_node();
     	front_end.sented();
-    	pub_points.publish(front_end.get_node().cloud);
+    	pub_points.publish(node.cloud);
 
     	// add node to graph 
-
     	ROS_DEBUG_STREAM("POS: " << start_pos);
-    	ROS_DEBUG_STREAM("Node" << front_end.get_node().seq << " sented");
+      ROS_DEBUG_STREAM("Node" << front_end.get_node().seq << " sented");
+    	optimizer.add_node(node);
+
+      unsigned int times = 1;
+      if (node.seq >= 5*times)
+      {
+        VertexPointXY* firstRobotPose = dynamic_cast<VertexPointXY*>(optimizer.vertex(0));
+        firstRobotPose->setFixed(true);
+        optimizer.setVerbose(true);
+
+        ROS_DEBUG_STREAM("Optimizing...");
+        optimizer.initializeOptimization();
+        optimizer.optimize(10);
+        ROS_DEBUG_STREAM("Done");
+
+        pub_merge_points.publish(optimizer.merge_cloud(node.seq));
+        times++;
+      }
     }
     front_end.unlock();
 

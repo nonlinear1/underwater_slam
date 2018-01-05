@@ -12,6 +12,8 @@
 #include <pcl/common/transforms.h>
 #include <pcl_ros/point_cloud.h>
 #include "Node.hpp"
+#include <math.h>      
+
 
 class FrontEnd
 {
@@ -62,35 +64,11 @@ public:
 		ready_ = false;
 	}
 
-	void check_bound(pcl::PointXYZ& point)
+	double check_bound(pcl::PointXYZ& point1, pcl::PointXYZ& point2)
 	{
-		if (first_)
-		{
-			node_.bound[0] = point.x;
-			node_.bound[1] = point.x;
-			node_.bound[2] = point.y;
-			node_.bound[3] = point.y;
-			first_ = false;
-			return;
-		}
-
-		if (point.x < node_.bound[0])
-		{
-			node_.bound[0] = point.x;
-		}
-		else if (point.x > node_.bound[1])
-		{
-			node_.bound[1] = point.x;
-		}
-
-		if (point.y < node_.bound[2])
-		{
-			node_.bound[2] = point.x;
-		}
-		else if (point.y > node_.bound[3])
-		{
-			node_.bound[3] = point.y;
-		}
+		double detx = point1.x - point2.x;
+		double dety = point1.y - point2.y;
+		return 0.5*sqrt(detx*detx + dety*dety);
 	}
 
 	Node get_node()
@@ -141,15 +119,13 @@ public:
 		  transform.rotate (q_);
 		  pcl::transformPointCloud (laser, laser, transform);
 
-		  check_bound(laser[0]);
-		  check_bound(laser[laser.size()-1]);
-
 		  cloud_+=laser;
 		  
 		  if (count_num_ == 25)
 		  {
 		  	node_.centre = pos_;
 		  	node_.centre_q = q_;
+		  	node_.R = check_bound(laser[0], laser[laser.size()-1]);
 		  }
 		  
 		  if (count_num_ >= 50)
