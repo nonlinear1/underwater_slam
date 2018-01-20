@@ -32,10 +32,10 @@ int main(int argc, char **argv)
 	FrontEnd front_end;
 	underwater_slam::RequireControl control_srv;
 
-	ros::Subscriber sub = node.subscribe<sensor_msgs::LaserScan>("g500/multibeam", 10, &FrontEnd::laser_callback, &front_end);
-  ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
-  ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Points", 1);
-  ros::Publisher pub_merge_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Merge_Points", 1);
+    ros::Subscriber sub = node.subscribe<sensor_msgs::LaserScan>("g500/multibeam", 10, &FrontEnd::laser_callback, &front_end);
+    ros::ServiceClient control_client = node.serviceClient<underwater_slam::RequireControl>("request_control");
+    ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Points", 1);
+    ros::Publisher pub_merge_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>> ("Merge_Points", 1);
 
 	ros::Rate loop_rate(60);
 
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
     	// add node to graph 
     	ROS_DEBUG_STREAM("POS: " << start_pos);
-      ROS_DEBUG_STREAM("Node" << front_end.get_node().seq << " sented");
+      	ROS_DEBUG_STREAM("Node" << front_end.get_node().seq << " sented");
     	optimizer.add_node(node);
 
       unsigned int times = 1;
