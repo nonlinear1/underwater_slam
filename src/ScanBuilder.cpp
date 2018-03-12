@@ -93,7 +93,6 @@ void ScanBuilder::update_pos(Eigen::Vector2d pos, Eigen::Vector2d dis, Eigen::Qu
     pos_mutex_.lock();
     if (first_) {
         start_pos_ = pos;
-        ROS_DEBUG_STREAM("start_pos " << start_pos_);
         first_ = false;
     }
     current_det_pos_ += dis;

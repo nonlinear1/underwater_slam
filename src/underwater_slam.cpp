@@ -2,6 +2,8 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <pcl_ros/point_cloud.h>
+#include <tf/transform_listener.h>
+#include <tf/transform_datatypes.h>
 
 #include "ScanBuilder.h"
 #include "EkfSlam.h"
@@ -59,9 +61,29 @@ int main(int argc, char **argv) {
     ros::Publisher pub_path = node.advertise<nav_msgs::Path>("Boatpath", 1);
     ros::Publisher pub_points = node.advertise<pcl::PointCloud<pcl::PointXYZ>>("Points", 1);
 
+    tf::TransformListener listener;
+    tf::StampedTransform transform;
+
+    while (node.ok()) {
+        try {
+            listener.lookupTransform("world", "multibeam",
+                                     ros::Time(0), transform);
+        }
+        catch (tf::TransformException& ex) {
+            ROS_ERROR("%s", ex.what());
+            ros::Duration(1.0).sleep();
+            continue;
+        }
+        break;
+    }
+
     ros::Rate loop_rate(60);
 
-    ros::Time time_now = ros::Time::now();
+    Eigen::Vector2d start_pos;
+    start_pos[0] = transform.getOrigin().x();
+    start_pos[1] = transform.getOrigin().y();
+    ekf_slam.init(start_pos);
+    ros::Time time_now = transform.stamp_;
     double det_t;
 
     Eigen::Vector2d dis;

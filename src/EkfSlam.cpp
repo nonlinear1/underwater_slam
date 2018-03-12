@@ -1,6 +1,9 @@
 #include "EkfSlam.h"
+#include <pcl/features/normal_3d.h>
+#include <pcl/filters/normal_space.h>
 #include <pcl/registration/icp.h>
 #include <pcl/filters/voxel_grid.h>
+#include <pcl/filters/extract_indices.h>
 
 EkfSlam::EkfSlam() {
     state_ = Eigen::VectorXd::Zero(3);
@@ -63,8 +66,6 @@ void EkfSlam::update(CloudPair cloud_pair) {
     }
     covariance_ = covariance_temp;
 
-    ROS_DEBUG_STREAM('\n' << state_);
-
     std::vector<int> close_list;
 
     close_list = search_nearest();
@@ -105,7 +106,7 @@ std::vector<int> EkfSlam::search_nearest() {
         Eigen::Vector2d det;
         det << state_[3 + 3 * i], state_[4 + 3 * i];
         det = det - current;
-        if (det.norm() < 1) {
+        if (det.norm() < 2) {
             rst.push_back(i);
         }
     }
@@ -114,13 +115,14 @@ std::vector<int> EkfSlam::search_nearest() {
 
 Eigen::Vector2d EkfSlam::icp(int ref, double& sigma) {
     ROS_DEBUG_STREAM("icp: " << ref << " " << num_);
+
     pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
     icp.setInputSource(cloud_vec_[ref].makeShared());
     icp.setInputTarget(cloud_vec_[num_ - 1].makeShared());
 
-    icp.setMaxCorrespondenceDistance(0.05);
+    icp.setMaxCorrespondenceDistance(0.5);
     icp.setMaximumIterations(50);
-    icp.setTransformationEpsilon(1e-8);
+    icp.setTransformationEpsilon(0.0001);
     icp.setEuclideanFitnessEpsilon(1);
 
     pcl::PointCloud<pcl::PointXYZ> final;
@@ -132,10 +134,11 @@ Eigen::Vector2d EkfSlam::icp(int ref, double& sigma) {
     trans.translation() = v_cur - v_ref;
     icp.align(final, trans.matrix());
     Eigen::Matrix4f matrix = icp.getFinalTransformation();
-    sigma = icp.getFitnessScore(0.05);
+    sigma = icp.getFitnessScore();
+    ROS_DEBUG_STREAM(sigma);
     Eigen::Vector2d det_icp;
     det_icp << matrix(0, 3), matrix(1, 3);
-
+    ROS_DEBUG_STREAM('\n' << det_icp);
     return det_icp;
 }
 
@@ -154,6 +157,6 @@ pcl::PointCloud<pcl::PointXYZ> EkfSlam::get_cloud() {
 void EkfSlam::filter(pcl::PointCloud<pcl::PointXYZ> &cloud) {
     pcl::VoxelGrid<pcl::PointXYZ> sor;
     sor.setInputCloud(cloud.makeShared());
-    sor.setLeafSize(0.1f, 0.1f, 0.1f);
+    sor.setLeafSize(0.05f, 0.05f, 0.05f);
     sor.filter(cloud);
 }

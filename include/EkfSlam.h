@@ -24,6 +24,12 @@ public:
 
     pcl::PointCloud<pcl::PointXYZ> get_cloud();
 
+    void init(Eigen::Vector2d pos){
+        state_[0] = pos[0];
+        state_[1] = pos[1];
+        state_[2] = 0.0;
+    }
+
 private:
     Eigen::Vector3d merge_predict(Eigen::Vector2d dis, Eigen::Quaterniond q);
 

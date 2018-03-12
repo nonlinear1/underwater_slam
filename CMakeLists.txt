@@ -63,11 +63,17 @@ add_definitions(${PCL_DEFINITIONS})
 add_executable(request_control src/request_control.cpp)
 add_executable(controller src/boat_tele.cpp)
 add_executable(ekf_slam src/underwater_slam.cpp)
+add_executable(ground_true src/show_path.cpp)
+
+target_link_libraries(ground_true
+        ${catkin_LIBRARIES}
+        )
 
 target_link_libraries(request_control
         ${catkin_LIBRARIES}
         ${Boost_LIBRARIES}
         )
+
 target_link_libraries(controller
         ${catkin_LIBRARIES}
         ${Boost_LIBRARIES}
