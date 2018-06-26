@@ -21,9 +21,21 @@ class ScanBuilder {
 public:
 
     ScanBuilder();
-
+    
+    /*
+        transfer laser data to cloud  
+        @scan_in original laserscan data 
+        @return nothing 
+    */
     void grab_laser(const sensor_msgs::LaserScan::ConstPtr &scan_in);
-
+    
+    /*
+        update position of robot  
+        @det Relative position
+        @dis Relative displacement
+        @q Quaternion
+        @return nothing 
+    */
     void update_pos(Eigen::Vector2d det, Eigen::Vector2d dis, Eigen::Quaterniond q);
 
     bool already_finish(){

@@ -10,8 +10,20 @@ class EkfSlam {
 public:
     EkfSlam();
 
+    /*
+        predict step in EKF slam 
+        @dis displacement between two data
+        @q quatenrnion
+        @det_t time between two data
+        @return nothing 
+    */
     void predict(Eigen::Vector2d dis, Eigen::Quaterniond q, double det_t);
 
+    /*
+        update step in EKF slam 
+        @cloud_pair cloud and its origin
+        @return nothing 
+    */
     void update(CloudPair cloud_pair);
 
     Eigen::Vector2d get_current_state() {
@@ -22,6 +34,10 @@ public:
         return pos;
     }
 
+    /*
+        get transformed cloud 
+        @return nothing 
+    */
     pcl::PointCloud<pcl::PointXYZ> get_cloud();
 
     void init(Eigen::Vector2d pos){

@@ -4,6 +4,7 @@
 #include <pcl/registration/icp.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/filters/extract_indices.h>
+#include <pcl/io/pcd_io.h>
 
 EkfSlam::EkfSlam() {
     state_ = Eigen::VectorXd::Zero(3);
@@ -115,6 +116,9 @@ std::vector<int> EkfSlam::search_nearest() {
 
 Eigen::Vector2d EkfSlam::icp(int ref, double& sigma) {
     ROS_DEBUG_STREAM("icp: " << ref << " " << num_);
+
+    pcl::io::savePCDFileASCII ("test_pcd1.pcd", cloud_vec_[ref]);
+    pcl::io::savePCDFileASCII ("test_pcd2.pcd", cloud_vec_[num_ - 1]);
 
     pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ> icp;
     icp.setInputSource(cloud_vec_[ref].makeShared());
